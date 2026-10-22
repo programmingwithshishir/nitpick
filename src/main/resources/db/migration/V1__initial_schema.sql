@@ -82,8 +82,8 @@ CREATE INDEX idx_events_date ON events(event_date);
 CREATE INDEX idx_venues_active ON venues(is_active);
 CREATE INDEX idx_events_active ON events(status);
 
--- Comments documenting the schema
-COMMENT ON TABLE venues IS 'College venues available for booking';
-COMMENT ON TABLE events IS 'Events scheduled in venues with slot management';
-COMMENT ON TABLE registrations IS 'Student registrations for event slots with concurrency safety';
-COMMENT ON COLUMN events.version IS 'Optimistic locking version for concurrent update safety';
+-- Schema metadata:
+-- venues: College venues available for booking
+-- events: Events scheduled in venues with slot management
+-- registrations: Student registrations for event slots with concurrency safety
+-- events.version: Optimistic locking version for concurrent update safety
