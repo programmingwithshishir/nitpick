@@ -1,4 +1,4 @@
--- Flyway Migration V1: Initial schema for venue booking application (MySQL compatible)
+-- Flyway Migration V1: Initial schema for Nitpick venue and slot booking application (MySQL compatible)
 
 -- Drop tables if they exist (for clean reset on each run due to flyway.reset-on-migration=true)
 DROP TABLE IF EXISTS registrations;
@@ -87,3 +87,21 @@ CREATE INDEX idx_events_active ON events(status);
 -- events: Events scheduled in venues with slot management
 -- registrations: Student registrations for event slots with concurrency safety
 -- events.version: Optimistic locking version for concurrent update safety
+
+-- ============================================================
+-- SEED DATA (reset on every run via FlywayMigrationStrategy)
+-- ============================================================
+
+-- Default users: admin + Shishir (student)
+INSERT INTO users (first_name, last_name, email, student_id, password, role, is_active)
+VALUES
+    ('Admin', 'User', 'admin@nitpick.com', NULL, 'admin123', 'ADMIN', TRUE),
+    ('Shishir', 'Shetty', 'shishir@nitpick.com', 'STU1001', 'student123', 'STUDENT', TRUE);
+
+-- Default venue: Sambhram auditorium
+INSERT INTO venues (name, capacity, location, description, is_active)
+VALUES ('Sambhram Auditorium', 500, 'Main Campus', 'Main college auditorium equipped with stage, PA system, and projectors', TRUE);
+
+-- Default event: Hackathon in November 2026
+INSERT INTO events (venue_id, name, description, event_date, start_time, end_time, total_slots, booked_slots, status, version)
+VALUES (1, 'HackFest 2026', 'Annual college hackathon — build something amazing in 24 hours!', '2026-11-15', '09:00:00', '21:00:00', 150, 0, 'ACTIVE', 0);

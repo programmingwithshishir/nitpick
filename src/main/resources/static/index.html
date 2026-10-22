@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VenueHub — College Venue & Slot Booking</title>
+    <title>Nitpick — College Venue & Slot Booking</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,25 +15,25 @@
     <header class="navbar">
         <div class="nav-container">
             <a href="/" class="brand">
-                <div class="brand-icon">VH</div>
-                <span>VenueHub</span>
+                <div class="brand-icon">NP</div>
+                <span>Nitpick</span>
             </a>
 
             <!-- Navigation Tabs -->
-            <nav class="nav-tabs">
-                <button class="nav-tab active" data-tab="events">
+            <nav class="nav-tabs" id="main-nav-tabs">
+                <button class="nav-tab active" data-tab="events" data-roles="STUDENT,FACULTY">
                     <span>📅</span> Events
                 </button>
-                <button class="nav-tab" data-tab="venues">
+                <button class="nav-tab" data-tab="venues" data-roles="ADMIN">
                     <span>🏛️</span> Venues
                 </button>
-                <button class="nav-tab" data-tab="schedule">
+                <button class="nav-tab" data-tab="schedule" data-roles="ADMIN,FACULTY">
                     <span>➕</span> Schedule Event
                 </button>
-                <button class="nav-tab" data-tab="registrations">
+                <button class="nav-tab" data-tab="registrations" data-roles="STUDENT,FACULTY">
                     <span>🎟️</span> My Bookings
                 </button>
-                <button class="nav-tab" data-tab="users">
+                <button class="nav-tab" data-tab="users" data-roles="ADMIN">
                     <span>👥</span> Users
                 </button>
             </nav>
@@ -43,7 +43,8 @@
                 <div class="user-selector-wrap">
                     <span>👤</span>
                     <select id="user-selector" class="user-select" title="Active User"></select>
-                    <button class="btn btn-secondary btn-sm" onclick="openModal('modal-add-user')" title="New User">+</button>
+                    <span id="user-role-badge" class="badge badge-role" style="margin-left: 0.25rem; font-size: 0.7rem; text-transform: uppercase;"></span>
+                    <button id="btn-add-user-nav" class="btn btn-secondary btn-sm" onclick="openModal('modal-add-user')" title="Register New User">+</button>
                 </div>
 
                 <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
@@ -58,32 +59,46 @@
 
         <!-- Quick Summary Stats Bar -->
         <section class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" data-stat-card="venues">
                 <div class="stat-icon" style="background: var(--accent-light); color: var(--accent);">🏛️</div>
                 <div class="stat-info">
                     <div class="stat-value" id="stat-venues">0</div>
                     <div class="stat-label">Active Venues</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-stat-card="events">
                 <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">📅</div>
                 <div class="stat-info">
                     <div class="stat-value" id="stat-events">0</div>
                     <div class="stat-label">Active Events</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-stat-card="available">
                 <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">🟢</div>
                 <div class="stat-info">
                     <div class="stat-value" id="stat-available">0</div>
                     <div class="stat-label">Available Slots</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-stat-card="booked">
                 <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">🎟️</div>
                 <div class="stat-info">
                     <div class="stat-value" id="stat-booked">0</div>
                     <div class="stat-label">Booked Slots</div>
+                </div>
+            </div>
+            <div class="stat-card" data-stat-card="registrations" style="display: none;">
+                <div class="stat-icon" style="background: var(--accent-light); color: var(--accent);">🎟️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-my-bookings">0</div>
+                    <div class="stat-label">My Bookings</div>
+                </div>
+            </div>
+            <div class="stat-card" data-stat-card="users" style="display: none;">
+                <div class="stat-icon" style="background: var(--accent-light); color: var(--accent);">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-users">0</div>
+                    <div class="stat-label">Total Users</div>
                 </div>
             </div>
         </section>

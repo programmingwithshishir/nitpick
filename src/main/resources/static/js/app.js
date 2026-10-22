@@ -1,5 +1,5 @@
 /**
- * Nitpick VenueHub - Interactive Client Application
+ * Nitpick - Interactive Client Application
  * Clean, modern single-page dashboard with Dark/Light mode and concurrency-safe booking
  */
 
@@ -20,7 +20,7 @@ const state = {
     activeTab: 'events',
     selectedSlot: null,
     bookingEvent: null,
-    theme: localStorage.getItem('venue_hub_theme') || 'dark'
+    theme: localStorage.getItem('nitpick_theme') || localStorage.getItem('venue_hub_theme') || 'dark'
 };
 
 // Initializer
@@ -44,7 +44,7 @@ function initTheme() {
 function toggleTheme() {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', state.theme);
-    localStorage.setItem('venue_hub_theme', state.theme);
+    localStorage.setItem('nitpick_theme', state.theme);
     updateThemeIcon();
 }
 
@@ -58,7 +58,7 @@ function updateThemeIcon() {
 }
 
 /* ==========================================================================
-   Navigation Tabs
+   Navigation Tabs & Role-Based Permissions
    ========================================================================== */
 function setupNavigation() {
     const tabs = document.querySelectorAll('.nav-tab');
@@ -78,6 +78,49 @@ function setupNavigation() {
             }
         });
     });
+}
+
+function applyRolePermissions() {
+    const role = state.currentUser ? state.currentUser.role : 'STUDENT';
+    const tabs = document.querySelectorAll('.nav-tab');
+    const userAddBtn = document.getElementById('btn-add-user-nav');
+    const roleBadge = document.getElementById('user-role-badge');
+
+    if (roleBadge) {
+        roleBadge.textContent = role;
+        roleBadge.className = `badge ${role === 'ADMIN' ? 'badge-cancelled' : 'badge-role'}`;
+    }
+
+    if (userAddBtn) {
+        userAddBtn.style.display = role === 'ADMIN' ? 'inline-flex' : 'none';
+    }
+
+    let firstVisibleTab = null;
+    let currentTabIsVisible = false;
+
+    tabs.forEach(tab => {
+        const allowedRoles = (tab.dataset.roles || '').split(',').map(r => r.trim());
+        const isAllowed = allowedRoles.length === 0 || allowedRoles.includes(role);
+
+        if (isAllowed) {
+            tab.style.display = 'inline-flex';
+            if (!firstVisibleTab) firstVisibleTab = tab.dataset.tab;
+            if (tab.dataset.tab === state.activeTab) currentTabIsVisible = true;
+        } else {
+            tab.style.display = 'none';
+        }
+    });
+
+    // If currently active tab is not accessible by this role, switch to the first accessible tab
+    if (!currentTabIsVisible && firstVisibleTab) {
+        switchToTab(firstVisibleTab);
+    } else {
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.style.display = section.id === `tab-${state.activeTab}` ? 'block' : 'none';
+        });
+    }
+
+    updateStats();
 }
 
 /* ==========================================================================
@@ -108,6 +151,7 @@ async function refreshAllData() {
         loadEvents(),
         loadRegistrations()
     ]);
+    applyRolePermissions();
     updateStats();
 }
 
@@ -159,16 +203,38 @@ async function loadRegistrations() {
 }
 
 function updateStats() {
+    const role = state.currentUser ? state.currentUser.role : 'STUDENT';
     const activeVenues = state.venues.filter(v => v.isActive).length;
     const activeEvents = state.events.filter(e => e.status === 'ACTIVE').length;
     const totalSlots = state.events.reduce((sum, e) => sum + (e.totalSlots || 0), 0);
     const bookedSlots = state.events.reduce((sum, e) => sum + (e.bookedSlots || 0), 0);
     const availableSlots = Math.max(0, totalSlots - bookedSlots);
+    const userBookings = state.registrations.filter(r => r.status === 'CONFIRMED').length;
+    const totalUsers = state.users.length;
 
-    document.getElementById('stat-venues').textContent = activeVenues;
-    document.getElementById('stat-events').textContent = activeEvents;
-    document.getElementById('stat-available').textContent = availableSlots;
-    document.getElementById('stat-booked').textContent = bookedSlots;
+    const statVenuesEl = document.getElementById('stat-venues');
+    const statEventsEl = document.getElementById('stat-events');
+    const statAvailableEl = document.getElementById('stat-available');
+    const statBookedEl = document.getElementById('stat-booked');
+    const statMyBookingsEl = document.getElementById('stat-my-bookings');
+    const statUsersEl = document.getElementById('stat-users');
+
+    if (statVenuesEl) statVenuesEl.textContent = activeVenues;
+    if (statEventsEl) statEventsEl.textContent = activeEvents;
+    if (statAvailableEl) statAvailableEl.textContent = availableSlots;
+    if (statBookedEl) statBookedEl.textContent = bookedSlots;
+    if (statMyBookingsEl) statMyBookingsEl.textContent = userBookings;
+    if (statUsersEl) statUsersEl.textContent = totalUsers;
+
+    // Toggle stats cards according to role
+    document.querySelectorAll('[data-stat-card]').forEach(card => {
+        const cardType = card.dataset.statCard;
+        if (role === 'ADMIN') {
+            card.style.display = (cardType === 'venues' || cardType === 'events' || cardType === 'booked' || cardType === 'users') ? 'flex' : 'none';
+        } else {
+            card.style.display = (cardType === 'events' || cardType === 'available' || cardType === 'booked' || cardType === 'registrations') ? 'flex' : 'none';
+        }
+    });
 }
 
 /* ==========================================================================
@@ -181,6 +247,7 @@ function populateUserSelector() {
     if (state.users.length === 0) {
         selector.innerHTML = '<option value="">No users registered</option>';
         state.currentUser = null;
+        applyRolePermissions();
         return;
     }
 
@@ -196,12 +263,14 @@ function populateUserSelector() {
         state.currentUser = state.users[0];
     }
     selector.value = state.currentUser ? state.currentUser.id : '';
+    applyRolePermissions();
 }
 
-function handleUserChange(e) {
+async function handleUserChange(e) {
     const userId = Number(e.target.value);
     state.currentUser = state.users.find(u => u.id === userId) || null;
-    loadRegistrations();
+    applyRolePermissions();
+    await loadRegistrations();
     renderEventsList();
 }
 
@@ -293,7 +362,7 @@ function renderEventsList() {
                         ${isCancelled || isFull ? 'disabled' : ''}>
                         ${isCancelled ? 'Cancelled' : (isFull ? 'Event Full' : 'Book a Slot')}
                     </button>
-                    ${!isCancelled ? `
+                    ${!isCancelled && state.currentUser && state.currentUser.role === 'ADMIN' ? `
                         <button class="btn btn-secondary btn-sm" onclick="cancelEvent(${event.id})" title="Cancel Event">
                             Cancel
                         </button>
@@ -341,12 +410,14 @@ function renderVenuesList() {
                 </div>
             </div>
 
-            <div class="card-actions">
-                <button class="btn btn-secondary btn-sm" style="width: 100%;" 
-                    onclick="toggleVenueStatus(${v.id}, ${!v.isActive})">
-                    ${v.isActive ? 'Deactivate Venue' : 'Activate Venue'}
-                </button>
-            </div>
+            ${state.currentUser && state.currentUser.role === 'ADMIN' ? `
+                <div class="card-actions">
+                    <button class="btn btn-secondary btn-sm" style="width: 100%;" 
+                        onclick="toggleVenueStatus(${v.id}, ${!v.isActive})">
+                        ${v.isActive ? 'Deactivate Venue' : 'Activate Venue'}
+                    </button>
+                </div>
+            ` : ''}
         </div>
     `).join('');
 }
@@ -634,8 +705,12 @@ function setupForms() {
 
                 showToast('Event scheduled successfully!', 'success');
                 scheduleForm.reset();
-                switchToTab('events');
                 await refreshAllData();
+                if (state.currentUser && state.currentUser.role === 'ADMIN') {
+                    switchToTab('venues');
+                } else {
+                    switchToTab('events');
+                }
             } catch (err) {
                 // Handled in apiCall
             }
@@ -717,7 +792,13 @@ function setupEventListeners() {
 
 function switchToTab(tabName) {
     const tabBtn = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
-    if (tabBtn) tabBtn.click();
+    if (tabBtn && tabBtn.style.display !== 'none') {
+        tabBtn.click();
+    } else {
+        // Fallback to first visible tab
+        const firstVisible = Array.from(document.querySelectorAll('.nav-tab')).find(t => t.style.display !== 'none');
+        if (firstVisible) firstVisible.click();
+    }
 }
 
 /* ==========================================================================
