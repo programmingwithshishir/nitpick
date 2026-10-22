@@ -9,7 +9,6 @@ import com.example.nitpick.nitpick.model.Event;
 import com.example.nitpick.nitpick.model.EventStatus;
 import com.example.nitpick.nitpick.model.Venue;
 import com.example.nitpick.nitpick.repository.EventRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +16,15 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class EventService {
 
     private final EventRepository eventRepository;
     private final VenueService venueService;
+
+    public EventService(EventRepository eventRepository, VenueService venueService) {
+        this.eventRepository = eventRepository;
+        this.venueService = venueService;
+    }
 
     @Transactional
     public EventResponse createEvent(EventRequest request) {

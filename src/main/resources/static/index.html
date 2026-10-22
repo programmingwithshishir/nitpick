@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VenueHub — College Venue & Slot Booking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <div class="brand-icon">VH</div>
+                <span>VenueHub</span>
+            </a>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="events">
+                    <span>📅</span> Events
+                </button>
+                <button class="nav-tab" data-tab="venues">
+                    <span>🏛️</span> Venues
+                </button>
+                <button class="nav-tab" data-tab="schedule">
+                    <span>➕</span> Schedule Event
+                </button>
+                <button class="nav-tab" data-tab="registrations">
+                    <span>🎟️</span> My Bookings
+                </button>
+                <button class="nav-tab" data-tab="users">
+                    <span>👥</span> Users
+                </button>
+            </nav>
+
+            <!-- User Selector & Dark Mode Toggle -->
+            <div class="nav-actions">
+                <div class="user-selector-wrap">
+                    <span>👤</span>
+                    <select id="user-selector" class="user-select" title="Active User"></select>
+                    <button class="btn btn-secondary btn-sm" onclick="openModal('modal-add-user')" title="New User">+</button>
+                </div>
+
+                <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                    <span id="theme-icon"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-wrapper">
+
+        <!-- Quick Summary Stats Bar -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: var(--accent-light); color: var(--accent);">🏛️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-venues">0</div>
+                    <div class="stat-label">Active Venues</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">📅</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-events">0</div>
+                    <div class="stat-label">Active Events</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">🟢</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-available">0</div>
+                    <div class="stat-label">Available Slots</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">🎟️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-booked">0</div>
+                    <div class="stat-label">Booked Slots</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 1: Events & Booking -->
+        <section id="tab-events" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Explore Events & Reserve Slots</h2>
+                    <p class="section-desc">Browse upcoming academic, technical, and cultural events across campus</p>
+                </div>
+                <div class="filters-bar">
+                    <input type="text" id="search-events" class="search-input" placeholder="Search event name...">
+                    <select id="filter-venue" class="filter-select"></select>
+                </div>
+            </div>
+            <div id="events-grid" class="cards-grid"></div>
+        </section>
+
+        <!-- TAB 2: Venues -->
+        <section id="tab-venues" class="tab-content" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Campus Venues & Facilities</h2>
+                    <p class="section-desc">Auditoriums, seminar halls, and laboratories available for booking</p>
+                </div>
+                <button class="btn btn-primary" onclick="openModal('modal-add-venue')">
+                    <span>➕</span> Add Venue
+                </button>
+            </div>
+            <div id="venues-grid" class="cards-grid"></div>
+        </section>
+
+        <!-- TAB 3: Schedule Event -->
+        <section id="tab-schedule" class="tab-content" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Schedule a New Event</h2>
+                    <p class="section-desc">Reserve a venue and configure slot capacity. Collisions are automatically prevented.</p>
+                </div>
+            </div>
+
+            <div style="max-width: 680px; margin: 0 auto; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem;">
+                <form id="form-schedule-event">
+                    <div class="form-group">
+                        <label class="form-label" for="schedule-venue">Select Venue *</label>
+                        <select id="schedule-venue" class="form-control" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="schedule-name">Event Title *</label>
+                        <input type="text" id="schedule-name" class="form-control" placeholder="e.g. AI & Robotics Symposium" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="schedule-desc">Description</label>
+                        <textarea id="schedule-desc" class="form-control" placeholder="Brief event outline and agenda..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="schedule-date">Event Date *</label>
+                            <input type="date" id="schedule-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="schedule-slots">Total Slots (Capacity) *</label>
+                            <input type="number" id="schedule-slots" class="form-control" min="1" max="1000" value="50" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="schedule-start">Start Time *</label>
+                            <input type="time" id="schedule-start" class="form-control" value="10:00" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="schedule-end">End Time *</label>
+                            <input type="time" id="schedule-end" class="form-control" value="12:00" required>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <button type="submit" class="btn btn-primary">Publish & Schedule Event</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 4: My Registrations -->
+        <section id="tab-registrations" class="tab-content" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">My Event Registrations</h2>
+                    <p class="section-desc">Manage your reserved slots. Cancelling a booking instantly frees the slot for another student.</p>
+                </div>
+            </div>
+            <div id="registrations-container"></div>
+        </section>
+
+        <!-- TAB 5: Users Directory -->
+        <section id="tab-users" class="tab-content" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">User Directory</h2>
+                    <p class="section-desc">Manage students, faculty, and administrative staff accounts</p>
+                </div>
+                <button class="btn btn-primary" onclick="openModal('modal-add-user')">
+                    <span>➕</span> Register User
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Student ID</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: Slot Booking -->
+    <div id="modal-booking" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Reserve Event Slot</h3>
+                <button class="modal-close" onclick="closeModal('modal-booking')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <h4 id="booking-event-title" style="font-size: 1.1rem; font-weight: 700;"></h4>
+                    <p id="booking-event-meta" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;"></p>
+                </div>
+
+                <div style="margin: 1.25rem 0 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                    Booking for: <strong id="booking-user-name" style="color: var(--text-primary);"></strong>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <label class="form-label">Pick a Specific Slot (Optional):</label>
+                    <div id="slot-grid" class="slot-grid"></div>
+                    <div id="selected-slot-label" style="font-size: 0.8rem; color: var(--text-muted); text-align: center;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-booking')">Cancel</button>
+                <button type="button" id="btn-confirm-booking" class="btn btn-primary">Confirm Reservation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Venue -->
+    <div id="modal-add-venue" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Venue</h3>
+                <button class="modal-close" onclick="closeModal('modal-add-venue')">&times;</button>
+            </div>
+            <form id="form-add-venue">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="venue-name">Venue Name *</label>
+                        <input type="text" id="venue-name" class="form-control" placeholder="e.g. Einstein Seminar Hall" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="venue-capacity">Seating Capacity *</label>
+                        <input type="number" id="venue-capacity" class="form-control" min="1" value="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="venue-location">Location / Building</label>
+                        <input type="text" id="venue-location" class="form-control" placeholder="e.g. Science Complex, 3rd Floor">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="venue-desc">Description & Equipment</label>
+                        <textarea id="venue-desc" class="form-control" placeholder="Sound system, projector, stage..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-venue')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Venue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add User -->
+    <div id="modal-add-user" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Register New User</h3>
+                <button class="modal-close" onclick="closeModal('modal-add-user')">&times;</button>
+            </div>
+            <form id="form-add-user">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="user-firstname">First Name *</label>
+                            <input type="text" id="user-firstname" class="form-control" placeholder="Alex" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="user-lastname">Last Name *</label>
+                            <input type="text" id="user-lastname" class="form-control" placeholder="Morgan" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="user-email">Email Address *</label>
+                        <input type="email" id="user-email" class="form-control" placeholder="alex.morgan@college.edu" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="user-studentid">Student / Staff ID</label>
+                            <input type="text" id="user-studentid" class="form-control" placeholder="STU9901">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="user-role">Role *</label>
+                            <select id="user-role" class="form-control">
+                                <option value="STUDENT">Student</option>
+                                <option value="FACULTY">Faculty</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-user')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

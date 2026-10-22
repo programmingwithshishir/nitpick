@@ -5,17 +5,19 @@ import com.example.nitpick.nitpick.dto.VenueResponse;
 import com.example.nitpick.nitpick.exception.ResourceNotFoundException;
 import com.example.nitpick.nitpick.model.Venue;
 import com.example.nitpick.nitpick.repository.VenueRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class VenueService {
 
     private final VenueRepository venueRepository;
+
+    public VenueService(VenueRepository venueRepository) {
+        this.venueRepository = venueRepository;
+    }
 
     @Transactional
     public VenueResponse createVenue(VenueRequest request) {

@@ -9,7 +9,6 @@ import com.example.nitpick.nitpick.model.*;
 import com.example.nitpick.nitpick.repository.EventRepository;
 import com.example.nitpick.nitpick.repository.RegistrationRepository;
 import com.example.nitpick.nitpick.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +16,19 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@RequiredArgsConstructor
 public class RegistrationService {
 
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+
+    public RegistrationService(RegistrationRepository registrationRepository,
+                               EventRepository eventRepository,
+                               UserRepository userRepository) {
+        this.registrationRepository = registrationRepository;
+        this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     public RegistrationResponse registerForEvent(RegistrationRequest request) {

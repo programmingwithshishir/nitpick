@@ -5,7 +5,6 @@ import com.example.nitpick.nitpick.dto.RegistrationRequest;
 import com.example.nitpick.nitpick.dto.RegistrationResponse;
 import com.example.nitpick.nitpick.service.RegistrationService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +13,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/registrations")
-@RequiredArgsConstructor
 public class RegistrationController {
 
     private final RegistrationService registrationService;
+
+    public RegistrationController(RegistrationService registrationService) {
+        this.registrationService = registrationService;
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<RegistrationResponse>> registerForEvent(

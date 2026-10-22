@@ -7,17 +7,19 @@ import com.example.nitpick.nitpick.exception.ResourceNotFoundException;
 import com.example.nitpick.nitpick.model.Role;
 import com.example.nitpick.nitpick.model.User;
 import com.example.nitpick.nitpick.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     public UserResponse createUser(UserRequest request) {

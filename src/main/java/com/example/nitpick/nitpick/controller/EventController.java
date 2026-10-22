@@ -6,7 +6,6 @@ import com.example.nitpick.nitpick.dto.EventResponse;
 import com.example.nitpick.nitpick.model.EventStatus;
 import com.example.nitpick.nitpick.service.EventService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +16,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
-@RequiredArgsConstructor
 public class EventController {
 
     private final EventService eventService;
+
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(@Valid @RequestBody EventRequest request) {
